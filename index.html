@@ -160,15 +160,13 @@ textarea{min-height:76px;resize:vertical}
 .history-full[hidden]{display:none}
 @media(max-width:520px){.history-row{align-items:flex-start;flex-wrap:wrap}.history-row .btn{margin-left:auto}}
 .history-item{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
+  display:block;
   padding:12px;
   border:1px solid var(--line);
   background:#0a1929;
   border-radius:10px
 }
+.history-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .history-item strong{display:block}
 .history-item small{color:var(--muted)}
 .status{font-size:11px;padding:4px 8px;border-radius:99px;background:#153d35;color:#7ce0b5}
@@ -425,9 +423,31 @@ function update() {
 function renderHistory() {
   const list = orderedRecords().map((r, index) => ({ ...r, number: String(index + 1).padStart(3, "0") }));
   $("historyCount").textContent = list.length + " rapport" + (list.length > 1 ? "s" : "");
-  $("history").innerHTML = list.length ? list.map((r) => `<div class="history-item"><div class="history-row"><div><strong>${esc(r.number)} — ${esc(r.nature)}</strong><small>${esc(r.place)} · ${dateFr(r.date)} à ${esc(r.time)} · ${esc(r.status || "En attente")}</small></div><div class="actions no-print" style="margin:0"><button class="btn history-toggle" type="button" aria-expanded="false">Afficher le rapport</button><span class="status ${(r.status || "En attente") === "En attente" ? "pending" : (r.status === "Refusé" ? "rejected" : "")}">${esc(r.status || "En attente")}</span></div></div><div class="history-full" hidden>${esc(reportText(r))}</div></div>`).join("") : '<div class="empty">Aucun rapport enregistré pour le moment.</div>';
+  $("history").innerHTML = list.length ? list.map((r) => {
+    const status = r.status || "En attente";
+    const actions = status === "En attente" ? `<button class="btn status-action" type="button" data-status="Validé">Valider</button><button class="btn status-action" type="button" data-status="Refusé">Refuser</button>` : "";
+    return `<div class="history-item" data-id="${esc(r.id)}"><div class="history-row"><div><strong>${esc(r.number)} — ${esc(r.nature)}</strong><small>${esc(r.place)} · ${dateFr(r.date)} à ${esc(r.time)} · ${esc(status)}</small></div><div class="history-actions no-print"><button class="btn history-toggle" type="button" aria-expanded="false">Afficher le rapport</button>${actions}<span class="status ${status === "En attente" ? "pending" : (status === "Refusé" ? "rejected" : "")}">${esc(status)}</span></div></div><div class="history-full" hidden>${esc(reportText(r))}</div></div>`;
+  }).join("") : '<div class="empty">Aucun rapport enregistré pour le moment.</div>';
 }
-$("history").addEventListener("click", (event) => {
+$("history").addEventListener("click", async (event) => {
+  const statusButton = event.target.closest(".status-action");
+  if (statusButton) {
+    const item = statusButton.closest(".history-item");
+    const row = records().find((r) => String(r.id) === item.dataset.id);
+    if (!row || !row.id) return alert("Impossible de retrouver ce rapport. Actualisez la page et réessayez.");
+    item.querySelectorAll(".status-action").forEach((button) => button.disabled = true);
+    try {
+      const reportData = { ...row, status: statusButton.dataset.status };
+      delete reportData.id;
+      delete reportData.createdAt;
+      await api(`?id=eq.${encodeURIComponent(row.id)}`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ report_data: reportData }) });
+      await refresh();
+    } catch (error) {
+      alert("Le statut n’a pas pu être modifié : " + error.message + "\nVérifiez que l’autorisation de modification a été activée dans Supabase.");
+      item.querySelectorAll(".status-action").forEach((button) => button.disabled = false);
+    }
+    return;
+  }
   const button = event.target.closest(".history-toggle");
   if (!button) return;
   const detail = button.closest(".history-item").querySelector(".history-full");
@@ -515,5 +535,6 @@ refresh();
     </script>
   </body>
 </html>
+
 
 
