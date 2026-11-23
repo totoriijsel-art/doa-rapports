@@ -344,23 +344,31 @@ async function api(path = "", options = {}) {
       ...(options.headers || {})
     }
   });
+  const text = await response.text();
+  let payload = null;
+  if (text) {
+    try {
+      payload = JSON.parse(text);
+    } catch {
+      payload = text;
+    }
+  }
   if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(detail || `Erreur serveur (${response.status})`);
+    const message = typeof payload === "string" ? payload :
+      payload?.message || payload?.hint || payload?.details || payload?.error || "";
+    throw new Error(message || `Erreur Supabase (${response.status} ${response.statusText})`);
   }
-    const text = await response.text();
-  if (!text) return null;
-
-  try {
-    return JSON.parse(text);
-  } catch {
-    throw new Error("Réponse invalide du serveur : " + text);
-  }
+  return payload;
 }
 function records() { return sharedRecords; }
+function orderedRecords() {
+  return records().slice().sort((a, b) =>
+    Date.parse(a.createdAt || 0) - Date.parse(b.createdAt || 0) ||
+    String(a.id || "").localeCompare(String(b.id || ""))
+  );
+}
 function nextNumber() {
-  const nums = records().map((r) => Number(String(r.number || "").match(/(\d+)$/)?.[1] || 0));
-  return String(Math.max(0, ...nums) + 1).padStart(3, "0");
+  return String(orderedRecords().length + 1).padStart(3, "0");
 }
 function val(id) {
   if (id === "result") return Array.from(document.querySelectorAll(".result-option:checked")).map((o) => o.value).join(", ");
@@ -410,15 +418,16 @@ function update() {
   ["save", "copy", "pdf"].forEach((id) => $(id).disabled = false);
 }
 function renderHistory() {
-  const list = records();
+  const list = orderedRecords().map((r, index) => ({ ...r, number: String(index + 1).padStart(3, "0") }));
   $("historyCount").textContent = list.length + " rapport" + (list.length > 1 ? "s" : "");
-  $("history").innerHTML = list.length ? list.slice().sort((a, b) => Number(String(a.number).match(/(\d+)$/)?.[1] || 0) - Number(String(b.number).match(/(\d+)$/)?.[1] || 0)).map((r) => `<div class="history-item"><div><strong>${esc(r.number)} — ${esc(r.nature)}</strong><small>${esc(r.place)} · ${dateFr(r.date)} à ${esc(r.time)} · ${esc(r.status || "En attente")}</small></div><span class="status ${(r.status || "En attente") === "En attente" ? "pending" : (r.status === "Refusé" ? "rejected" : "")}">${esc(r.status || "En attente")}</span></div>`).join("") : '<div class="empty">Aucun rapport enregistré pour le moment.</div>';
+  $("history").innerHTML = list.length ? list.map((r) => `<div class="history-item"><div><strong>${esc(r.number)} — ${esc(r.nature)}</strong><small>${esc(r.place)} · ${dateFr(r.date)} à ${esc(r.time)} · ${esc(r.status || "En attente")}</small></div><span class="status ${(r.status || "En attente") === "En attente" ? "pending" : (r.status === "Refusé" ? "rejected" : "")}">${esc(r.status || "En attente")}</span></div>`).join("") : '<div class="empty">Aucun rapport enregistré pour le moment.</div>';
 }
 async function refresh() {
   $("history").innerHTML = '<div class="empty">Chargement des rapports…</div>';
   try {
-    const rows = await api("?select=report_number,report_data,created_at&order=created_at.asc");
-    sharedRecords = rows.map((row) => ({ ...row.report_data, number: row.report_number, createdAt: row.created_at }));
+    const rows = await api("?select=id,report_data,created_at&order=created_at.asc,id.asc");
+    if (!Array.isArray(rows)) throw new Error("Supabase n’a pas renvoyé la liste des rapports attendue.");
+    sharedRecords = rows.map((row) => ({ ...(row.report_data || {}), id: row.id, createdAt: row.created_at }));
     renderHistory();
     $("number").value = nextNumber();
   } catch (error) {
@@ -452,7 +461,7 @@ $("save").addEventListener("click", async () => {
   try {
     const number = nextNumber();
     const data = { ...current, number, status: "En attente" };
-    await api("", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ report_number: number, report_data: data }) });
+    await api("", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ report_data: data }) });
     current = data;
     $("number").value = number;
     renderPreview(current);
