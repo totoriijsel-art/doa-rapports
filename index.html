@@ -348,8 +348,14 @@ async function api(path = "", options = {}) {
     const detail = await response.text();
     throw new Error(detail || `Erreur serveur (${response.status})`);
   }
-  if (response.status === 204) return null;
-  return response.json();
+    const text = await response.text();
+  if (!text) return null;
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error("Réponse invalide du serveur : " + text);
+  }
 }
 function records() { return sharedRecords; }
 function nextNumber() {
