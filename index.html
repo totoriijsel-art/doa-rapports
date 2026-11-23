@@ -461,7 +461,7 @@ $("save").addEventListener("click", async () => {
   try {
     const number = nextNumber();
     const data = { ...current, number, status: "En attente" };
-    await api("", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ report_data: data }) });
+    await api("", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ report_number: number, report_data: data }) });
     current = data;
     $("number").value = number;
     renderPreview(current);
