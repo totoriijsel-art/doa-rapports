@@ -154,6 +154,11 @@ textarea{min-height:76px;resize:vertical}
 .preview .agents{margin-top:22px;padding-top:12px;border-top:1px solid #cbd5e1;font-size:12px}
 .history{margin-top:18px}
 .history-list{display:flex;flex-direction:column;gap:9px}
+.history-item{display:block}
+.history-row{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.history-full{margin-top:12px;background:#f7f9fc;color:#1c2938;border-radius:11px;padding:18px;font:13px/1.65 Arial,sans-serif;white-space:pre-wrap}
+.history-full[hidden]{display:none}
+@media(max-width:520px){.history-row{align-items:flex-start;flex-wrap:wrap}.history-row .btn{margin-left:auto}}
 .history-item{
   display:flex;
   justify-content:space-between;
@@ -420,8 +425,17 @@ function update() {
 function renderHistory() {
   const list = orderedRecords().map((r, index) => ({ ...r, number: String(index + 1).padStart(3, "0") }));
   $("historyCount").textContent = list.length + " rapport" + (list.length > 1 ? "s" : "");
-  $("history").innerHTML = list.length ? list.map((r) => `<div class="history-item"><div><strong>${esc(r.number)} — ${esc(r.nature)}</strong><small>${esc(r.place)} · ${dateFr(r.date)} à ${esc(r.time)} · ${esc(r.status || "En attente")}</small></div><span class="status ${(r.status || "En attente") === "En attente" ? "pending" : (r.status === "Refusé" ? "rejected" : "")}">${esc(r.status || "En attente")}</span></div>`).join("") : '<div class="empty">Aucun rapport enregistré pour le moment.</div>';
+  $("history").innerHTML = list.length ? list.map((r) => `<div class="history-item"><div class="history-row"><div><strong>${esc(r.number)} — ${esc(r.nature)}</strong><small>${esc(r.place)} · ${dateFr(r.date)} à ${esc(r.time)} · ${esc(r.status || "En attente")}</small></div><div class="actions no-print" style="margin:0"><button class="btn history-toggle" type="button" aria-expanded="false">Afficher le rapport</button><span class="status ${(r.status || "En attente") === "En attente" ? "pending" : (r.status === "Refusé" ? "rejected" : "")}">${esc(r.status || "En attente")}</span></div></div><div class="history-full" hidden>${esc(reportText(r))}</div></div>`).join("") : '<div class="empty">Aucun rapport enregistré pour le moment.</div>';
 }
+$("history").addEventListener("click", (event) => {
+  const button = event.target.closest(".history-toggle");
+  if (!button) return;
+  const detail = button.closest(".history-item").querySelector(".history-full");
+  const expanded = button.getAttribute("aria-expanded") === "true";
+  button.setAttribute("aria-expanded", String(!expanded));
+  detail.hidden = expanded;
+  button.textContent = expanded ? "Afficher le rapport" : "Masquer le rapport";
+});
 async function refresh() {
   $("history").innerHTML = '<div class="empty">Chargement des rapports…</div>';
   try {
@@ -501,3 +515,4 @@ refresh();
     </script>
   </body>
 </html>
+
