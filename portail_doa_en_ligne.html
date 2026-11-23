@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>DOA — Gestion des rapports</title>
+    <style>
+:root{
+  --bg:#07111f;
+  --panel:#0d1b2d;
+  --panel2:#10243b;
+  --line:#1e3b5b;
+  --blue:#2684ff;
+  --blue2:#56a2ff;
+  --text:#edf4ff;
+  --muted:#9bb0c9;
+  --green:#35c98a;
+  --red:#ff6878
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:radial-gradient(ellipse at top right,#102d4e 0,transparent 38%),var(--bg);
+  color:var(--text);
+  font:15px/1.5 Inter,Segoe UI,Arial,sans-serif
+}
+header{
+  border-bottom:1px solid var(--line);
+  background:#081525eF;
+  position:sticky;
+  top:0;
+  z-index:2;
+  backdrop-filter:blur(12px)
+}
+.wrap{max-width:1180px;margin:auto;padding:18px 22px}
+.brand{display:flex;align-items:center;gap:13px}
+.brand-logo{
+  height:52px;
+  width:auto;
+  display:block;
+  object-fit:contain
+}
+.brand h1{font-size:18px;margin:0;letter-spacing:.08em}
+.brand p{margin:1px 0 0;color:var(--muted);font-size:12px;letter-spacing:.14em}
+main{max-width:1180px;margin:30px auto;padding:0 22px}
+.intro{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:22px}
+.eyebrow{color:var(--blue2);font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase}
+.intro h2{font-size:29px;margin:5px 0}
+.intro p{color:var(--muted);margin:0}
+.pill{
+  border:1px solid #275b91;
+  background:#102b48;
+  color:#a9d1ff;
+  padding:8px 12px;
+  border-radius:999px;
+  font-size:12px;
+  white-space:nowrap
+}
+.grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(360px,.95fr);gap:18px}
+.card{
+  background:linear-gradient(180deg,#102137,#0b192a);
+  border:1px solid var(--line);
+  border-radius:16px;
+  overflow:hidden;
+  box-shadow:0 14px 35px #0003
+}
+.cardhead{
+  padding:17px 20px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  align-items:center;
+  justify-content:space-between
+}
+.cardhead h3{margin:0;font-size:15px}
+.cardbody{padding:20px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field.full{grid-column:1/-1}
+label{font-size:12px;color:#b8cbe0;font-weight:650}
+input,textarea{
+  width:100%;
+  border:1px solid #294763;
+  background:#071525;
+  color:var(--text);
+  padding:11px 12px;
+  border-radius:9px;
+  font:inherit;
+  outline:none
+}
+input:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px #2684ff22}
+textarea{min-height:76px;resize:vertical}
+.hint{font-size:11px;color:var(--muted)}
+.multi-dropdown{position:relative}
+.multi-dropdown summary{
+  list-style:none;
+  cursor:pointer;
+  border:1px solid #294763;
+  background:#071525;
+  color:var(--text);
+  padding:11px 38px 11px 12px;
+  border-radius:9px;
+  position:relative
+}
+.multi-dropdown summary::-webkit-details-marker{display:none}
+.multi-dropdown summary:after{content:"▾";position:absolute;right:13px;color:var(--blue2)}
+.multi-dropdown[open] summary{border-color:var(--blue);border-radius:9px 9px 0 0}
+.multi-options{
+  border:1px solid var(--blue);
+  border-top:0;
+  background:#0a1929;
+  border-radius:0 0 9px 9px;
+  padding:7px;
+  display:grid;
+  gap:2px
+}
+.multi-options label{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding:8px;
+  border-radius:6px;
+  cursor:pointer;
+  color:var(--text);
+  font-weight:500
+}
+.multi-options label:hover{background:#142c46}
+.multi-options input{width:16px;height:16px;accent-color:var(--blue);padding:0}
+.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}
+.btn{
+  border:1px solid #315578;
+  background:#142c46;
+  color:var(--text);
+  padding:10px 14px;
+  border-radius:9px;
+  font-weight:700;
+  cursor:pointer
+}
+.btn.primary{background:linear-gradient(135deg,#1674df,#2b91ff);border-color:#348ff0;color:white}
+.btn:hover{filter:brightness(1.12)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.preview{
+  background:#f7f9fc;
+  color:#1c2938;
+  border-radius:11px;
+  padding:22px;
+  min-height:420px;
+  font-family:Arial,sans-serif;
+  white-space:normal
+}
+.preview .dochead{border-bottom:2px solid #173d65;padding-bottom:12px;margin-bottom:16px}
+.preview .dochead strong{font-size:18px;color:#12385f;letter-spacing:.08em}
+.preview .meta{font-size:12px;color:#53657a;margin-top:5px}
+.preview p{font-size:13px;line-height:1.65;margin:12px 0}
+.preview .agents{margin-top:22px;padding-top:12px;border-top:1px solid #cbd5e1;font-size:12px}
+.history{margin-top:18px}
+.history-list{display:flex;flex-direction:column;gap:9px}
+.history-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  padding:12px;
+  border:1px solid var(--line);
+  background:#0a1929;
+  border-radius:10px
+}
+.history-item strong{display:block}
+.history-item small{color:var(--muted)}
+.status{font-size:11px;padding:4px 8px;border-radius:99px;background:#153d35;color:#7ce0b5}
+.status.pending{background:#453719;color:#ffd47b}
+.status.rejected{background:#451e2b;color:#ff9aaa}
+.empty{color:var(--muted);font-size:13px;text-align:center;padding:20px}
+.note{
+  margin-top:18px;
+  border:1px solid #755d2b;
+  background:#2b2415;
+  color:#e9d5a6;
+  padding:13px 15px;
+  border-radius:10px;
+  font-size:12px
+}
+footer{text-align:center;color:#7188a2;font-size:11px;padding:30px}
+
+@media(max-width:850px){
+  .grid{grid-template-columns:1fr}
+  .intro{align-items:start;flex-direction:column}
+  .pill{white-space:normal}
+}
+@media(max-width:520px){
+  .fields{grid-template-columns:1fr}
+  .field.full{grid-column:auto}
+  .wrap,main{padding-left:14px;padding-right:14px}
+  .intro h2{font-size:24px}
+  .cardbody{padding:15px}
+}
+@media print{
+  body{background:white;color:#111}
+  .no-print,header,.intro,.card:first-child,.history,.note,footer{display:none!important}
+  main{margin:0;padding:0}
+  .grid{display:block}
+  .card{border:0;box-shadow:none}
+  .cardhead{display:none}
+  .cardbody{padding:0}
+  .preview{border-radius:0;padding:0;min-height:0}
+}
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap">
+        <div class="brand">
+          <img class="brand-logo" src="data:image/png;base64,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" alt="DOA Police">
+          <div><h1>DRUG OBSERVATION AGENCY</h1><p>PORTAIL DE GESTION DES RAPPORTS</p></div>
+        </div>
+      </div>
+    </header>
+    <main>
+      <section class="intro">
+        <div>
+          <div class="eyebrow">Espace opérationnel</div>
+          <h2>Rapports d'intervention</h2>
+          <p>Renseignez les informations manquantes et générez votre rapport.</p>
+        </div>
+        <div class="pill">● SERVICE DOA · ACCÈS AGENT</div>
+      </section>
+      <div class="grid">
+        <section class="card">
+          <div class="cardhead"><h3>① Informations du rapport</h3><span class="eyebrow">Formulaire</span></div>
+          <div class="cardbody">
+            <form id="reportForm">
+              <div class="fields">
+                <div class="field"><label for="number">Numéro du rapport</label><input id="number" readonly></div>
+                <div class="field">
+                  <label for="nature">Nature du rapport</label>
+                  <input id="nature" value="Braquage de convoi" required>
+                </div>
+                <div class="field">
+                  <label for="place">Lieu de l'intervention *</label>
+                  <input id="place" placeholder="Ex. : Route 68" required>
+                </div>
+                <div class="field"><label for="date">Date *</label><input id="date" type="date" required></div>
+                <div class="field"><label for="time">Heure *</label><input id="time" type="time" required></div>
+                <div class="field">
+                  <label for="count">Nombre d'individus *</label>
+                  <input id="count" type="number" min="0" placeholder="Ex. : 4" required>
+                </div>
+                <div class="field full">
+                  <label for="suspects">Nom(s) et prénom(s) des suspects</label>
+                  <textarea id="suspects" placeholder="Un nom par ligne, ou indiquer : Identité inconnue"></textarea>
+                </div>
+                <div class="field full">
+                  <label for="vehicles">Véhicules utilisés par les suspects *</label>
+                  <input id="vehicles" placeholder="Modèle, couleur, plaque si connue" required>
+                </div>
+                <div class="field full">
+                  <label>Résultat de l'intervention * (plusieurs choix possibles)</label>
+                  <details class="multi-dropdown" id="resultDropdown">
+                    <summary id="resultSummary">Sélectionner un ou plusieurs résultats</summary>
+                    <div class="multi-options">
+                      <label><input type="checkbox" class="result-option" value="Arrestations"> Arrestations</label>
+                      <label><input type="checkbox" class="result-option" value="Poursuite"> Poursuite</label>
+                      <label><input type="checkbox" class="result-option" value="Fuite des suspects"> Fuite des suspects</label>
+                      <label><input type="checkbox" class="result-option" value="Sécurisation du convoi"> Sécurisation du convoi</label>
+                      <label><input type="checkbox" class="result-option" value="Convoi récupéré"> Convoi récupéré</label>
+                      <label><input type="checkbox" class="result-option" value="Autre / intervention en cours"> Autre / intervention en cours</label>
+                    </div>
+                  </details>
+                  <span class="hint">Ouvrez la liste puis cochez tous les résultats concernés.</span>
+                </div>
+                <div class="field">
+                  <label for="arrests">Suspects interpellés *</label>
+                  <input id="arrests" type="number" min="0" value="0" required>
+                </div>
+                <div class="field">
+                  <label for="injured">Nombre de blessés *</label>
+                  <input id="injured" type="number" min="0" value="0" required>
+                </div>
+                <div class="field full">
+                  <label for="stolen">Marchandises ou biens dérobés *</label>
+                  <textarea id="stolen" placeholder="Préciser les biens dérobés ou indiquer : Aucun" required></textarea>
+                </div>
+                <div class="field full">
+                  <label for="agents">Agents concernés *</label>
+                  <textarea id="agents" required>Capitaine White 69</textarea>
+                </div>
+                <div class="field full">
+                  <label for="robbed">Véhicules braqués</label>
+                  <textarea id="robbed" placeholder="Préciser les véhicules du convoi concernés ou indiquer : Aucun"></textarea>
+                </div>
+              </div>
+              <div class="actions">
+                <button class="btn primary" type="submit">Générer le rapport</button>
+                <button class="btn" type="reset" id="reset">Effacer le formulaire</button>
+              </div>
+              <p class="hint">* Champs obligatoires. Le rapport est prévisualisé avant son enregistrement.</p>
+            </form>
+          </div>
+        </section>
+        <section class="card">
+          <div class="cardhead"><h3>② Aperçu du rapport</h3><span class="eyebrow">Document</span></div>
+          <div class="cardbody">
+            <div class="preview" id="preview">
+              <div class="dochead">
+                <strong>SERVICE : DOA</strong>
+                <div class="meta">RAPPORT D'INTERVENTION</div>
+              </div>
+              <p>Complétez le formulaire pour afficher votre rapport ici.</p>
+            </div>
+            <div class="actions no-print">
+              <button class="btn primary" id="save" disabled>Enregistrer le rapport</button>
+              <button class="btn" id="copy" disabled>Copier le texte</button>
+              <button class="btn" id="pdf" disabled>Imprimer / PDF</button>
+            </div>
+          </div>
+        </section>
+      </div>
+      <section class="card history">
+        <div class="cardhead"><h3>③ Historique des rapports</h3><span class="eyebrow" id="historyCount">0 rapport</span></div>
+        <div class="cardbody">
+          <div class="history-list" id="history">
+            <div class="empty">Chargement des rapports…</div>
+          </div>
+        </div>
+      </section>
+      <div class="note"><strong>Enregistrement en ligne :</strong> les rapports sont partagés entre les personnes qui utilisent ce portail. Gardez le lien du site à disposition des agents.</div>
+    </main>
+    <footer>DOA · Portail interne de rapports · Version prototype</footer>
+    <script>
+const SUPABASE_URL = "https://mylnpncjzgdlnoaktyoc.supabase.co";
+const SUPABASE_KEY = "sb_publishable_yXXVlftFVDYkzo5HPEGlMA_ipnHEQU6";
+const TABLE_URL = `${SUPABASE_URL}/rest/v1/doa_reports`;
+const $ = (id) => document.getElementById(id);
+const today = () => new Date().toLocaleDateString("en-CA");
+let current = null;
+let sharedRecords = [];
+
+async function api(path = "", options = {}) {
+  const response = await fetch(`${TABLE_URL}${path}`, {
+    ...options,
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      "Content-Type": "application/json",
+      ...(options.headers || {})
+    }
+  });
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(detail || `Erreur serveur (${response.status})`);
+  }
+  if (response.status === 204) return null;
+  return response.json();
+}
+function records() { return sharedRecords; }
+function nextNumber() {
+  const nums = records().map((r) => Number(String(r.number || "").match(/(\d+)$/)?.[1] || 0));
+  return String(Math.max(0, ...nums) + 1).padStart(3, "0");
+}
+function val(id) {
+  if (id === "result") return Array.from(document.querySelectorAll(".result-option:checked")).map((o) => o.value).join(", ");
+  return $(id).value.trim();
+}
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+}
+function dateFr(s) {
+  if (!s) return "";
+  const [y, m, d] = s.split("-");
+  return `${d}/${m}/${y}`;
+}
+function paras(d) {
+  const std = d.nature.trim().toLowerCase() === "braquage de convoi";
+  const alerte = std ? "d'une attaque visant un convoi" : `pour une intervention (${d.nature})`;
+  const constat = std ? "le braquage du convoi" : "les faits signalés";
+  return [
+    "SERVICE : DOA",
+    `NATURE DU RAPPORT : ${d.nature}`,
+    `RAPPORT DOA ${d.number}`,
+    `La DOA a été alertée ${alerte} à ${d.place}, le ${dateFr(d.date)} à ${d.time}.`,
+    "Les unités engagées se sont rendues sur place afin de sécuriser le secteur, de protéger les personnes présentes et d'intervenir contre les individus impliqués.",
+    `Sur les lieux, les agents ont constaté ${constat}. Les individus étaient au nombre de ${d.count}. Identité(s) relevée(s) : ${d.suspects}. Les individus étaient en ${d.vehicles}. L'intervention a donné le résultat suivant : ${d.result}.`,
+    `Le bilan fait état de ${d.arrests} suspect(s) interpellé(s), ${d.injured} blessé(s) et des marchandises ou biens dérobés suivants : ${d.stolen}. Les preuves disponibles ont été consignées pour les besoins de l'enquête.`,
+    `Agents concernés : ${d.agents}`,
+    `Véhicules braqués : ${d.robbed || "Non renseigné"}`
+  ];
+}
+function reportText(d) { return paras(d).join("\n\n"); }
+function getData() {
+  return { number: val("number"), nature: val("nature"), place: val("place"), date: val("date"), time: val("time"), count: val("count"), suspects: val("suspects") || "Identité inconnue", vehicles: val("vehicles"), result: val("result"), arrests: val("arrests"), injured: val("injured"), stolen: val("stolen"), agents: val("agents"), robbed: val("robbed") };
+}
+function renderPreview(d) {
+  const t = paras(d);
+  $("preview").innerHTML = `<div class="dochead"><strong>RAPPORT DOA ${esc(d.number)}</strong><div class="meta">SERVICE : DOA</div><div class="meta">NATURE DU RAPPORT : ${esc(d.nature)}</div></div>${t.slice(3, 7).map((p) => `<p>${esc(p)}</p>`).join("")}<div class="agents"><p><b>Agents concernés :</b> ${esc(d.agents)}</p><p><b>Véhicules braqués :</b> ${esc(d.robbed || "Non renseigné")}</p></div>`;
+}
+function update() {
+  const f = $("reportForm");
+  if (!f.reportValidity() || !val("result")) {
+    current = null;
+    ["save", "copy", "pdf"].forEach((id) => $(id).disabled = true);
+    return;
+  }
+  current = getData();
+  renderPreview(current);
+  ["save", "copy", "pdf"].forEach((id) => $(id).disabled = false);
+}
+function renderHistory() {
+  const list = records();
+  $("historyCount").textContent = list.length + " rapport" + (list.length > 1 ? "s" : "");
+  $("history").innerHTML = list.length ? list.slice().sort((a, b) => Number(String(a.number).match(/(\d+)$/)?.[1] || 0) - Number(String(b.number).match(/(\d+)$/)?.[1] || 0)).map((r) => `<div class="history-item"><div><strong>${esc(r.number)} — ${esc(r.nature)}</strong><small>${esc(r.place)} · ${dateFr(r.date)} à ${esc(r.time)} · ${esc(r.status || "En attente")}</small></div><span class="status ${(r.status || "En attente") === "En attente" ? "pending" : (r.status === "Refusé" ? "rejected" : "")}">${esc(r.status || "En attente")}</span></div>`).join("") : '<div class="empty">Aucun rapport enregistré pour le moment.</div>';
+}
+async function refresh() {
+  $("history").innerHTML = '<div class="empty">Chargement des rapports…</div>';
+  try {
+    const rows = await api("?select=report_number,report_data,created_at&order=created_at.asc");
+    sharedRecords = rows.map((row) => ({ ...row.report_data, number: row.report_number, createdAt: row.created_at }));
+    renderHistory();
+    $("number").value = nextNumber();
+  } catch (error) {
+    $("history").innerHTML = `<div class="empty">Impossible de charger les rapports en ligne : ${esc(error.message)}. Vérifiez la configuration Supabase.</div>`;
+    $("historyCount").textContent = "Indisponible";
+  }
+}
+$("number").value = "001";
+$("date").value = today();
+$("reportForm").addEventListener("input", () => { if ($("reportForm").checkValidity()) update(); });
+$("reportForm").addEventListener("change", () => { if ($("reportForm").checkValidity()) update(); });
+document.querySelectorAll(".result-option").forEach((box) => box.addEventListener("change", () => {
+  const selected = Array.from(document.querySelectorAll(".result-option:checked")).map((x) => x.value);
+  $("resultSummary").textContent = selected.length ? selected.join(" · ") : "Sélectionner un ou plusieurs résultats";
+  if ($("reportForm").checkValidity()) update();
+}));
+$("reportForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  if (!val("result")) {
+    $("resultDropdown").open = true;
+    alert("Cochez au moins un résultat de l'intervention.");
+    return;
+  }
+  update();
+});
+$("save").addEventListener("click", async () => {
+  if (!current) return;
+  const button = $("save");
+  button.disabled = true;
+  button.textContent = "Enregistrement…";
+  try {
+    const number = nextNumber();
+    const data = { ...current, number, status: "En attente" };
+    await api("", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ report_number: number, report_data: data }) });
+    current = data;
+    $("number").value = number;
+    renderPreview(current);
+    await refresh();
+    button.disabled = true;
+    alert(`Rapport DOA ${number} enregistré en ligne. Il est maintenant visible par tous les utilisateurs du portail.`);
+  } catch (error) {
+    alert("Le rapport n'a pas pu être enregistré : " + error.message);
+    button.disabled = false;
+  } finally {
+    button.textContent = "Enregistrer le rapport";
+  }
+});
+$("copy").addEventListener("click", async () => {
+  if (!current) return;
+  try {
+    await navigator.clipboard.writeText(reportText(current));
+    $("copy").textContent = "Copié !";
+    setTimeout(() => $("copy").textContent = "Copier le texte", 1500);
+  } catch {
+    alert("Copie non disponible. Vous pouvez sélectionner le texte de l’aperçu.");
+  }
+});
+$("pdf").addEventListener("click", () => window.print());
+$("reset").addEventListener("click", () => {
+  setTimeout(() => {
+    $("number").value = nextNumber();
+    $("date").value = today();
+    current = null;
+    document.querySelectorAll(".result-option").forEach((x) => x.checked = false);
+    $("resultSummary").textContent = "Sélectionner un ou plusieurs résultats";
+    $("preview").innerHTML = '<div class="dochead"><strong>SERVICE : DOA</strong><div class="meta">RAPPORT D’INTERVENTION</div></div><p>Complétez le formulaire pour afficher votre rapport ici.</p>';
+    ["save", "copy", "pdf"].forEach((id) => $(id).disabled = true);
+  }, 0);
+});
+refresh();
+    </script>
+  </body>
+</html>
